@@ -14,8 +14,8 @@ void setup() {
   Serial.println(F("=== OLED 0.66'' 64x48 Test ==="));
 
   // 2. Khởi tạo giao tiếp I2C
-  // TRƯỜNG HỢP A: Nếu test trên mạch in (PCB) của bạn (SDA=21, SCL=23)
-  Wire.begin(21, 23);
+  // TRƯỜNG HỢP A: Nếu test trên mạch in (PCB) của bạn (đã đảo chân: SDA=23, SCL=21)
+  Wire.begin(23, 21);
   
   // TRƯỜNG HỢP B: Nếu test trên kit ESP32 thông thường ngoài breadboard (chân mặc định SDA=21, SCL=22)
   // Bạn hãy uncomment dòng dưới đây và comment dòng Wire.begin(21,23) ở trên lại nhé:

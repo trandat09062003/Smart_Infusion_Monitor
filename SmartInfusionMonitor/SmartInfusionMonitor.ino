@@ -166,8 +166,8 @@ void setup() {
   pinMode(ITR9606_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(ITR9606_PIN), countDropISR, RISING);
 
-  // Initialize I2C with custom pins from schematic: SDA=21, SCL=23
-  Wire.begin(21, 23);
+  // Initialize I2C with custom pins from schematic (swapped): SDA=23, SCL=21
+  Wire.begin(23, 21);
 
   // OLED initialization
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {

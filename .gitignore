@@ -1,0 +1,19 @@
+# Arduino IDE and build outputs
+**/build/
+.sketch.metadata
+*.local.properties
+
+# Altium Designer outputs
+**/History/
+**/__Previews/
+**/*.LOG
+**/*.DRC
+**/*.REP
+**/*.DXF
+**/*.APR
+**/*.EXTREP
+**/*.LDP
+**/*.ERR
+**/*.BKP
+**/*.Zip
+**/Project Logs for */

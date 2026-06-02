@@ -1,5 +1,7 @@
 # Hệ thống Giám sát Lưu lượng và Khối lượng Chai Dịch truyền Y tế (IoT)
 
+![Views](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Ftrandat09062003%2FSmart_Infusion_Monitor&count_bg=%2379C0FF&title_bg=%23555555&icon=&icon_color=%23E5E5E5&title=views&edge_flat=false)
+
 Dự án nghiên cứu và thiết kế thiết bị IoT giám sát dịch truyền y tế từ xa phục vụ bệnh viện/phòng khám. Hệ thống tự động đo tốc độ nhỏ giọt (DPM), tính lưu lượng thể tích (ml/h), giám sát khối lượng dung dịch còn lại trong chai truyền và phát cảnh báo thời gian thực khi dịch truyền sắp hết.
 
 Thiết bị sử dụng vi điều khiển **ESP32 NodeMCU DevKit V1**, cảm biến ngắt hồng ngoại **ITR9606** (đếm giọt), cảm biến trọng lượng **Loadcell 5kg + HX711** và màn hình **OLED 0.66"** để hiển thị tại chỗ. Dữ liệu được đồng bộ lên **ThingsBoard Cloud** qua giao thức MQTT.

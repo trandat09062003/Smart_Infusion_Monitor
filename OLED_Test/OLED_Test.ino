@@ -21,8 +21,8 @@ int bagFill = 15;
 void setup() {
   Serial.begin(115200);
   
-  // Khởi tạo I2C tùy biến theo Schematic của bạn: SDA=21, SCL=23
-  Wire.begin(21, 23);
+  // Khởi tạo I2C tùy biến theo Schematic của bạn: SDA=21, SCL=22
+  Wire.begin(21, 22);
 
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println(F("OLED allocation failed"));

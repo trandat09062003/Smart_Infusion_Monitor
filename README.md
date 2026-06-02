@@ -36,7 +36,7 @@ Thiết bị được thiết kế và gá đặt trên mạch in (PCB) với s�
 | **Cảm biến trọng lượng HX711** | `HX711_DT` (Data) | **GPIO16 (RX2)** | Đường truyền dữ liệu cân nặng từ ADC 24-bit |
 | **Cảm biến trọng lượng HX711** | `HX711_SCK` (Clock) | **GPIO17 (TX2)** | Xung nhịp đồng bộ của ADC 24-bit |
 | **Màn hình OLED 128x64 I2C** | `OLED_SDA` | **GPIO21** | Đường truyền dữ liệu I2C |
-| **Màn hình OLED 128x64 I2C** | `OLED_SCL` | **GPIO23** | Đường xung nhịp I2C (Cấu hình tùy biến trên mạch in) |
+| **Màn hình OLED 128x64 I2C** | `OLED_SCL` | **GPIO22** | Đường xung nhịp I2C |
 | **Còi báo động (Buzzer)** | `BUZZER_CTRL` | **GPIO19** | Điều khiển còi chủ động (Active Buzzer) qua transistor C1815 |
 
 ---

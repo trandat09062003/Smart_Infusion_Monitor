@@ -35,15 +35,18 @@
 #define BUZZER_PIN       19   // Buzzer (via transistor)
 
 // I2C defaults on ESP32: SDA = GPIO21, SCL = GPIO22 (OLED)
-#define SCREEN_WIDTH  128
+#define SCREEN_WIDTH   128
 #define SCREEN_HEIGHT  64
 #define OLED_RESET    -1   // No separate reset line
 
 // ------------------------------------------------------------
-// 3. Global Objects
+// 3. Global Objects & Display States
 // ------------------------------------------------------------
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 HX711 scale;
+
+// OLED refresh rate
+const unsigned long OLED_REFRESH_INTERVAL = 200; // Refresh OLED every 200ms
 
 // ------------------------------------------------------------
 // 4. Configuration Parameters
@@ -85,6 +88,53 @@ bool isBuzzerActive = false;                  // Alarm state flag
 // ------------------------------------------------------------
 // 6. Helper Functions
 // ------------------------------------------------------------
+// Render all 4 parameters on a single clean page
+void drawPage(float weight, float dpm, float mlh, unsigned long drops, bool alert) {
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+  
+  // Viewport offsets for the 0.66" 64x48 OLED:
+  // Maps physical columns 0-63 to GDDRAM columns 32-95
+  // Maps physical rows 0-47 to GDDRAM rows 16-63
+  const int x_offset = 32;
+  const int y_offset = 16;
+  const int x_margin = x_offset + 4; // Left margin of 4 pixels on physical glass
+  
+  // Row 1: Weight (WT)
+  display.setCursor(x_margin, y_offset + 2);
+  display.print(F("W: "));
+  display.print(weight, 1);
+  display.print(F("g"));
+  
+  // Row 2: Drip Rate (Rate)
+  display.setCursor(x_margin, y_offset + 11);
+  display.print(F("R: "));
+  display.print((int)dpm);
+  display.print(F("dpm"));
+  
+  // Row 3: Volume Rate (Vol)
+  display.setCursor(x_margin, y_offset + 20);
+  display.print(F("V: "));
+  display.print((int)mlh);
+  display.print(F("ml/h"));
+  
+  // Row 4: Total Drops (Drops)
+  display.setCursor(x_margin, y_offset + 29);
+  display.print(F("D: "));
+  display.print(drops);
+
+  // Footer status bar (always present at bottom of the page, text only)
+  display.setCursor(x_margin, y_offset + 39);
+  if (alert) {
+    // Blink alert text
+    if ((millis() / 300) % 2 == 0) {
+      display.print(F("ALERT"));
+    }
+  } else {
+    display.print(F("SAFE"));
+  }
+}
+
 // Interrupt routine – called on each drop detection
 void IRAM_ATTR countDropISR() {
   unsigned long now = millis();
@@ -166,8 +216,8 @@ void setup() {
   pinMode(ITR9606_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(ITR9606_PIN), countDropISR, RISING);
 
-  // Initialize I2C with custom pins from schematic (swapped): SDA=23, SCL=21
-  Wire.begin(23, 21);
+  // Initialize I2C with custom pins from schematic: SDA=21, SCL=22
+  Wire.begin(21, 22);
 
   // OLED initialization
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
@@ -264,62 +314,22 @@ void loop() {
     isBuzzerActive = false;
   }
 
-  // ----- OLED & Serial update (once per second) -----
+  // ----- Serial output (once per second) -----
   if (now - lastUpdateSec >= 1000) {
-    // Serial output – useful for debugging
     Serial.print(F("Weight: ")); Serial.print(remainingWeight, 1); Serial.print(F(" g | "));
     Serial.print(F("Flow: ")); Serial.print(currentFlowRateDPM, 1); Serial.print(F(" DPM | "));
     Serial.print(F("Vol: ")); Serial.print(currentFlowRateMLH, 1); Serial.print(F(" ml/h | "));
     Serial.print(F("Drops: ")); Serial.println(dropCount);
-
-    // OLED drawing – clean, modern layout
-    display.clearDisplay();
-    // Header bar
-    display.fillRect(0, 0, SCREEN_WIDTH, 12, SSD1306_WHITE);
-    display.setTextColor(SSD1306_BLACK);
-    display.setTextSize(1);
-    display.setCursor(2, 2);
-    display.print(F("SMART IV MONITOR"));
-    // Remaining weight
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, 16);
-    display.print(F("Weight: "));
-    display.setTextSize(2);
-    display.print(remainingWeight, 1);
-    display.print(F(" g"));
-    // Flow rate (DPM)
-    display.setTextSize(1);
-    display.setCursor(0, 44);
-    display.print(F("Rate: "));
-    display.setTextSize(2);
-    display.print((int)currentFlowRateDPM);
-    display.print(F(" dpm"));
-    // Small volume rate on right side
-    display.setTextSize(1);
-    display.setCursor(80, 30);
-    display.print(F("Vol "));
-    display.setTextSize(2);
-    display.print(currentFlowRateMLH, 1);
-    display.print(F(" ml/h"));
-    // Alert / Safe indicator box
-    display.drawRect(82, 46, 44, 16, SSD1306_WHITE);
-    if (isBuzzerActive) {
-      // Blink ALERT text
-      if ((now / 500) % 2 == 0) {
-        display.fillRect(83, 47, 42, 14, SSD1306_WHITE);
-        display.setTextColor(SSD1306_BLACK);
-      } else {
-        display.setTextColor(SSD1306_WHITE);
-      }
-      display.setCursor(87, 50);
-      display.print(F("ALERT"));
-    } else {
-      display.setTextColor(SSD1306_WHITE);
-      display.setCursor(91, 50);
-      display.print(F("SAFE"));
-    }
-    display.display();
     lastUpdateSec = now;
+  }
+
+  // ----- OLED display update (every 200ms for smooth status bar blinking) -----
+  static unsigned long lastOledRefreshTime = 0;
+  if (now - lastOledRefreshTime >= OLED_REFRESH_INTERVAL) {
+    lastOledRefreshTime = now;
+    display.clearDisplay();
+    drawPage(remainingWeight, currentFlowRateDPM, currentFlowRateMLH, dropCount, isBuzzerActive);
+    display.display();
   }
 
   // ----- Cloud telemetry (every 5 s) -----
